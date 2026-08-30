@@ -1,5 +1,8 @@
 <Solution>
-  <Folder Name="/tests/" />
+  <Folder Name="/tests/">
+    <Project Path="ConferenceBooking.Application.Tests/ConferenceBooking.Application.Tests.csproj" Id="1382b22b-36f1-44d9-8b69-c296d166d73b" />
+    <Project Path="ConferenceBooking.Domain.Tests/ConferenceBooking.Domain.Tests.csproj" Id="c6f3e22d-108b-429f-8b3e-04aa5e71a513" />
+  </Folder>
   <Project Path="ConferenceBooking.Application/ConferenceBooking.Application.csproj" />
   <Project Path="ConferenceBooking.Domain/ConferenceBooking.Domain.csproj" />
   <Project Path="ConferenceBooking.Infrastructure/ConferenceBooking.Infrastructure.csproj" />
