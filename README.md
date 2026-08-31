@@ -33,6 +33,7 @@ REST API для управління бронюванням та орендою 
 | Тести            | xUnit + FluentAssertions                    |
 
 ## Архітектура
+```
 ConferenceBooking.Domain             — ядро, без залежностей від інших шарів
     ↑
 ConferenceBooking.Application        — use cases (CQRS через Mediator), валідація
@@ -40,6 +41,7 @@ ConferenceBooking.Application        — use cases (CQRS через Mediator), �
 ConferenceBooking.Infrastructure     — EF Core, репозиторії, міграції
     ↑
 ConferenceRoomBooking                — ASP.NET Core Web API (Presentation)
+```
 
 ## Патерни
 - **CQRS** — розділення команд і запитів через Mediator, кожен use case в окремому файлі (Command/Query + Validator + Handler)
@@ -100,7 +102,7 @@ dotnet ef database update <PreviousMigration> --project ConferenceBooking.Infras
 ```
 Рядок підключення налаштовується в ConferenceRoomBooking/appsettings.json (ConnectionStrings:DefaultConnection).
 
-Запуск застосунку
+**Запуск застосунку**
 ```
 dotnet run --project ConferenceRoomBooking
 ```
