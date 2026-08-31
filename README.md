@@ -2,7 +2,7 @@
 REST API для управління бронюванням та орендою конференц-залів, побудований на ASP.NET Core Web API.
 
 ## Зміст
-- [Опис задачі](#запуск)
+- [Опис задачі](#опис-задачі)
 - [Технології](#технології)
 - [Архітектура](#архітектура)
 - [Структура проєкту](#структура-проєкту)
@@ -87,6 +87,15 @@ ConferenceRoomBooking.sln
     └── ConferenceBooking.Application.Tests/   # Юніт-тести хендлерів (in-memory EF Core)
 ```
 
+
+## База даних
+EF Core з Code First міграціями
+# Застосування міграцій
+dotnet ef database update --project ConferenceBooking.Infrastructure --startup-project ConferenceRoomBooking
+# Створення нової міграції
+dotnet ef migrations add <Name> --project ConferenceBooking.Infrastructure --startup-project ConferenceRoomBooking
+# Відкат
+dotnet ef database update <PreviousMigration> --project ConferenceBooking.Infrastructure --startup-project ConferenceRoomBooking
 
 ## Початкові дані (seed)
 | Зал   | Місткість | Базова ставка |
