@@ -118,7 +118,7 @@ Swagger UI доступний за адресою https://localhost:{port}/swagg
 Послуги: Проєктор (500 грн), Wi-Fi (300 грн), Звук (700 грн)
 ## API Endpoints
 **Rooms**
-| Method   | Endpoint                               | Description                    |
+| Метод   | Маршрут                              | Опис                    |
 | -------- | -------------------------------------- | ------------------------------ |
 | `POST`   | `/api/rooms`                           | Створити зал                   |
 | `GET`    | `/api/rooms/{id}`                      | Отримати зал за ID             |
@@ -128,12 +128,12 @@ Swagger UI доступний за адресою https://localhost:{port}/swagg
 | `GET`    | `/api/rooms/available`                 | Пошук доступних залів          |
 
 **Bookings**
-| Method | Endpoint        | Description     |
+| Метод | Маршрут       | Опис     |
 | ------ | --------------- | --------------- |
 | `POST` | `/api/bookings` | Забронювати зал |
 
 **Reports**
-| Method | Endpoint                        | Description                          |
+| Метод | Маршрут                        | Опис                         |
 | ------ | ------------------------------- | ------------------------------------ |
 | `GET`  | `/api/reports/occupancy`        | Завантаженість залів за період       |
 | `GET`  | `/api/reports/revenue`          | Дохід за період (загалом і по залах) |
