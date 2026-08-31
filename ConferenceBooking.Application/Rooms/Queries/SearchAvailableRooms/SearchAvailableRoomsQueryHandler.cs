@@ -45,23 +45,17 @@ public class SearchAvailableRoomsQueryHandler
             .ToList();
 
         // Отримання ID послуг, які відповідають доступним залам
-        var serviceIds = availableRooms.SelectMany(r => r.Services.Select(s => s.ServiceId)).Distinct().ToList();
+        var serviceIds = availableRooms.SelectMany(r => r.Services.Select(s => s.ServiceId)).Distinct().
+            ToList();
         // Отримання всіх послуг, які відповідають доступним залам
         var services = await _context.Services
             .Where(s => serviceIds.Contains(s.Id))
             .ToDictionaryAsync(s => s.Id, cancellationToken);
 
-        return availableRooms.Select(r => new RoomDto(
-            r.Id,
-            r.Name,
-            r.Capacity,
-            r.BaseHourlyRate.Amount,
-            r.IsActive,
-            r.Services
-                .Where(rs => services.ContainsKey(rs.ServiceId))
-                .Select(rs => services[rs.ServiceId])
-                .Select(s => new ServiceDto(s.Id, s.Name, s.Price.Amount))
-                .ToList()
-        )).ToList();
+        return availableRooms
+        .Select(r => RoomDto.FromEntity(r,r.Services
+             .Where(rs => services.ContainsKey(rs.ServiceId))
+             .Select(rs => services[rs.ServiceId])))
+        .ToList();
     }
 }

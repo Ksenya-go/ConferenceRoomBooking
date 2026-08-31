@@ -6,8 +6,6 @@ public static class BookingErrorMessages
     public const string EndMustBeAfterStart = "Час завершення має бути пізніше за час початку";
     public const string CannotBookInThePast = "Неможливо забронювати зал у минулому";
     public const string ServiceIdRequired = "ID послуги не може бути порожнім";
-
-    public static string RoomNotFound(Guid roomId) => $"Зал з ID '{roomId}' не знайдено";
     public static string RoomInactive(string roomName) => $"Зал '{roomName}' " +
         $"наразі недоступний для бронювання";
     public static string ServicesNotAvailable(string roomName, IEnumerable<Guid> serviceIds) =>
