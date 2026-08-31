@@ -55,6 +55,7 @@ Room (Зал)
 Service (послуга)
 
 ## Структура проєкту
+```
 ConferenceRoomBooking.sln
 ├── ConferenceBooking.Domain/          # Доменний шар
 │   ├── Common/                        # AggregateRoot, DomainErrorMessages
@@ -82,3 +83,4 @@ ConferenceRoomBooking.sln
 └── tests/
     ├── ConferenceBooking.Domain.Tests/        # Юніт-тести доменної логіки
     └── ConferenceBooking.Application.Tests/   # Юніт-тести хендлерів (in-memory EF Core)
+```
