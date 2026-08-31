@@ -189,3 +189,4 @@ dotnet test
 | `AggregateRoot`              | Юніт-тести рівності за ідентичністю               |
 | `PricingService`             | Юніт-тести, включно з граничними сценаріями       |
 | Rooms / Bookings / Reports   | Тести валідаторів і хендлерів з in-memory EF Core |
+
