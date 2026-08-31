@@ -88,8 +88,26 @@ ConferenceRoomBooking.sln
     ├── ConferenceBooking.Domain.Tests/        # Юніт-тести доменної логіки
     └── ConferenceBooking.Application.Tests/   # Юніт-тести хендлерів (in-memory EF Core)
 ```
+**Вимоги**
+- .NET 10 SDK
+- SQL Server (LocalDB підходить для розробки)
+- EF Core CLI
 
+## Початок роботи
+```
+# 1. Клонування
+git clone <repo-url>
+cd ConferenceRoomBooking
 
+# 2. Відновлення залежностей
+dotnet restore
+
+# 3. Збірка
+dotnet build
+
+# 4. Запуск тестів
+dotnet test
+```
 ## База даних
 EF Core з Code First міграціями
 ```
@@ -170,3 +188,8 @@ dotnet test
 | `AggregateRoot`              | Юніт-тести рівності за ідентичністю               |
 | `PricingService`             | Юніт-тести, включно з граничними сценаріями       |
 | Rooms / Bookings / Reports   | Тести валідаторів і хендлерів з in-memory EF Core |
+
+## Відомі обмеження
+Звіт PopularServicesReport рахує вартість послуги за поточною ціною з довідника, а не за ціною, зафіксованою на момент бронювання. Для повної коректності в майбутньому варто зберігати ціну послуги на момент бронювання окремо (наприклад, через сутність BookingService).
+
+
