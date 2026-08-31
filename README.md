@@ -98,6 +98,13 @@ dotnet ef migrations add <Name> --project ConferenceBooking.Infrastructure --sta
 # Відкат
 dotnet ef database update <PreviousMigration> --project ConferenceBooking.Infrastructure --startup-project ConferenceRoomBooking
 ```
+Рядок підключення налаштовується в ConferenceRoomBooking/appsettings.json (ConnectionStrings:DefaultConnection).
+
+Запуск застосунку
+```
+dotnet run --project ConferenceRoomBooking
+```
+Swagger UI доступний за адресою https://localhost:{port}/swagger. При першому запуску в Development-режимі база автоматично засіюється початковими даними.
 
 ## Початкові дані (seed)
 | Зал   | Місткість | Базова ставка |
@@ -106,6 +113,7 @@ dotnet ef database update <PreviousMigration> --project ConferenceBooking.Infras
 | Зал B |  100 осіб |  3500 грн/год |
 | Зал C |   30 осіб |  1500 грн/год |
 
+Послуги: Проєктор (500 грн), Wi-Fi (300 грн), Звук (700 грн)
 ## API Endpoints
 **Rooms**
 | Method   | Endpoint                               | Description                    |
