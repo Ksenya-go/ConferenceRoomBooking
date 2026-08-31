@@ -11,7 +11,6 @@ REST API для управління бронюванням та орендою 
 - [API Endpoints](#api-endpoints)
 - [Розрахунок вартості](#розрахунок-вартості)
 - [Тестування](#тестування)
-- [Відомі обмеження](#відомі-обмеження)
 
 ## Опис задачі
 Компанія надає в оренду конференц-зали для бізнесу. API дозволяє клієнтам шукати доступні зали, бронювати їх, а також розраховувати вартість оренди залежно від часу та обраних послуг.
@@ -46,7 +45,7 @@ ConferenceRoomBooking                — ASP.NET Core Web API (Presentation)
 ## Патерни
 - **CQRS** — розділення команд і запитів через Mediator, кожен use case в окремому файлі (Command/Query + Validator + Handler)
 - **Repository** — абстракція доступу до даних (IRoomRepository, IBookingRepository, IServiceRepository)
-- **Pipeline Behaviors** — наскрізна логіка (валідація, логування) через IPipelineBehavior
+- **Pipeline Behaviors** — валідація, логування через IPipelineBehavior
 - **Value Objects** — Money, TimeRange інкапсулюють власні інваріанти
 - **Aggregate Root** — окремі агрегати, щоб перевірка перетинів бронювань і конкурентного доступу не блокувала весь зал
 - **Soft delete** — зали та послуги не видаляються фізично, щоб не зламати історію вже здійснених бронювань
@@ -113,8 +112,10 @@ EF Core з Code First міграціями
 ```
 # Застосування міграцій
 dotnet ef database update --project ConferenceBooking.Infrastructure --startup-project ConferenceRoomBooking
+
 # Створення нової міграції
 dotnet ef migrations add <Name> --project ConferenceBooking.Infrastructure --startup-project ConferenceRoomBooking
+
 # Відкат
 dotnet ef database update <PreviousMigration> --project ConferenceBooking.Infrastructure --startup-project ConferenceRoomBooking
 ```
@@ -124,7 +125,7 @@ dotnet ef database update <PreviousMigration> --project ConferenceBooking.Infras
 ```
 dotnet run --project ConferenceRoomBooking
 ```
-Swagger UI доступний за адресою https://localhost:{port}/swagger. При першому запуску в Development-режимі база автоматично засіюється початковими даними.
+Swagger UI доступний за адресою https://localhost:{port}/swagger. При першому запуску в Development-режимі база автоматично заповнюється початковими даними.
 
 ## Початкові дані (seed)
 | Зал   | Місткість | Базова ставка |
@@ -142,7 +143,7 @@ Swagger UI доступний за адресою https://localhost:{port}/swagg
 | `GET`    | `/api/rooms/{id}`                      | Отримати зал за ID             |
 | `PUT`    | `/api/rooms/{id}`                      | Оновити зал                    |
 | `POST`   | `/api/rooms/{id}/services/{serviceId}` | Додати послугу до залу         |
-| `DELETE` | `/api/rooms/{id}`                      | Деактивувати зал (soft delete) |
+| `DELETE` | `/api/rooms/{id}`                      | Деактивувати зал               |
 | `GET`    | `/api/rooms/available`                 | Пошук доступних залів          |
 
 **Bookings**
@@ -170,11 +171,11 @@ Swagger UI доступний за адресою https://localhost:{port}/swagg
 Якщо бронювання перетинає кілька поясів одразу, кожен сегмент рахується окремо пропорційно тривалості, а результати сумуються.
 
 **Безпека та відмовостійкість**
-- централізована обробка помилок (ExceptionHandlingMiddleware) — не розкриває клієнту внутрішні деталі 500-помилок
-- rate limiting (100 запитів/хв)
+- централізована обробка помилок (ExceptionHandlingMiddleware), яка не розкриває клієнту внутрішні деталі 500-помилок
+- обмеження частоти запитів у 100 запитів/хв
 - валідація вхідних даних через FluentValidation для кожної команди/запиту
 - захист від конкурентного бронювання через транзакцію з рівнем ізоляції Serializable (IBookingTransactionGuard)
-- retry-логіка на транзієнтні помилки БД
+- логіка повторних спроб на транзієнтні помилки БД
 
 ## Тестування
 **Запуск усіх тестів:**
@@ -188,8 +189,3 @@ dotnet test
 | `AggregateRoot`              | Юніт-тести рівності за ідентичністю               |
 | `PricingService`             | Юніт-тести, включно з граничними сценаріями       |
 | Rooms / Bookings / Reports   | Тести валідаторів і хендлерів з in-memory EF Core |
-
-## Відомі обмеження
-Звіт PopularServicesReport рахує вартість послуги за поточною ціною з довідника, а не за ціною, зафіксованою на момент бронювання. Для повної коректності в майбутньому варто зберігати ціну послуги на момент бронювання окремо (наприклад, через сутність BookingService).
-
-
