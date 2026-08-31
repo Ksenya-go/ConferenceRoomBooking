@@ -1,5 +1,6 @@
 ﻿using ConferenceBooking.Application.Common.ErrorMessages;
 using ConferenceBooking.Application.Common.Exceptions;
+using ConferenceBooking.Application.Common.Extensions;
 using ConferenceBooking.Application.Common.Interfaces;
 using ConferenceBooking.Application.Rooms.Dtos;
 using Mediator;
@@ -19,14 +20,7 @@ public class GetRoomByIdQueryHandler : IRequestHandler<GetRoomByIdQuery, RoomDto
     public async ValueTask<RoomDto> Handle(GetRoomByIdQuery request, CancellationToken cancellationToken)
     {
         // Отримання ID залу
-        var room = await _context.Rooms
-            .Include(r => r.Services)
-            .FirstOrDefaultAsync(r => r.Id == request.RoomId, cancellationToken);
-
-        if (room is null)
-        {
-            throw new NotFoundException(RoomErrorMessages.RoomNotFound(request.RoomId));
-        }
+        var room = await _context.GetRoomOrThrowAsync(request.RoomId, cancellationToken, includeServices: true);
         // Отримання ID послуг, пов'язаних із залом
         var serviceIds = room.Services.Select(rs => rs.ServiceId).ToList();
         
@@ -35,12 +29,6 @@ public class GetRoomByIdQueryHandler : IRequestHandler<GetRoomByIdQuery, RoomDto
             .Where(s => serviceIds.Contains(s.Id))
             .ToListAsync(cancellationToken);
 
-        return new RoomDto(
-            room.Id,
-            room.Name,
-            room.Capacity,
-            room.BaseHourlyRate.Amount,
-            room.IsActive,
-            services.Select(s => new ServiceDto(s.Id, s.Name, s.Price.Amount)).ToList());
+        return RoomDto.FromEntity(room, services);
     }
 }

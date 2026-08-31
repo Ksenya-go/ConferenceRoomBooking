@@ -1,4 +1,5 @@
 ﻿using ConferenceBooking.Application.Common.Interfaces;
+using ConferenceBooking.Application.Reports.Common;
 using ConferenceBooking.Application.Reports.Dtos;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
@@ -27,9 +28,8 @@ public class RoomOccupancyReportQueryHandler
             .ToListAsync(cancellationToken);
 
         // Отримання всіх бронювань за вказаний період
-        var bookings = await _context.Bookings
-            .Where(b => b.TimeRange.Start >= request.PeriodStart && b.TimeRange.End <= request.PeriodEnd)
-            .ToListAsync(cancellationToken);
+        var bookings = await ReportQueryHelpers.GetBookingsInPeriodAsync(
+                       _context, request.PeriodStart, request.PeriodEnd, cancellationToken);
 
         // Розрахунок загальної кількості днів у періоді
         var totalDays = Math.Max(1, (request.PeriodEnd.Date - request.PeriodStart.Date).Days);

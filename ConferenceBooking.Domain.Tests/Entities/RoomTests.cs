@@ -31,7 +31,7 @@ public class RoomTests
     public void Create_NameWithExtraSpaces_TrimsName()
     {
         // Arrange
-        var name = "Зал B";
+        var name = " Зал B ";
 
         // Act
         var room = Room.Create(name, 100, Money.Uah(3500));

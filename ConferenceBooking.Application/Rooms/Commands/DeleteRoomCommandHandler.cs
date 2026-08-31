@@ -1,5 +1,6 @@
 ﻿using ConferenceBooking.Application.Common.ErrorMessages;
 using ConferenceBooking.Application.Common.Exceptions;
+using ConferenceBooking.Application.Common.Extensions;
 using ConferenceBooking.Application.Common.Interfaces;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
@@ -17,14 +18,8 @@ public class DeleteRoomCommandHandler : IRequestHandler<DeleteRoomCommand, Unit>
 
     public async ValueTask<Unit> Handle(DeleteRoomCommand request, CancellationToken cancellationToken)
     {
-        var room = await _context.Rooms
-            .FirstOrDefaultAsync(r => r.Id == request.RoomId, cancellationToken);
+        var room = await _context.GetRoomOrThrowAsync(request.RoomId, cancellationToken);
 
-        if (room is null)
-        {
-            throw new NotFoundException(RoomErrorMessages.RoomNotFound(request.RoomId));
-        }
-           
         room.Deactivate();
 
         await _context.SaveChangesAsync(cancellationToken);

@@ -1,5 +1,6 @@
 ﻿using ConferenceBooking.Application.Common.ErrorMessages;
 using ConferenceBooking.Application.Common.Exceptions;
+using ConferenceBooking.Application.Common.Extensions;
 using ConferenceBooking.Application.Common.Interfaces;
 using ConferenceBooking.Domain.Entities;
 using ConferenceBooking.Domain.Services;
@@ -32,14 +33,7 @@ public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand,
         // з конкурентним доступом
         return await _bookingGuard.ExecuteAsync(async ct =>
         {
-            var room = await _context.Rooms
-                .Include(r => r.Services)
-                .FirstOrDefaultAsync(r => r.Id == request.RoomId, ct);
-
-            if (room is null)
-            {
-                throw new NotFoundException(RoomErrorMessages.RoomNotFound(request.RoomId));
-            }
+            var room = await _context.GetRoomOrThrowAsync(request.RoomId, ct, includeServices: true);
 
             if (!room.IsActive)
             {
