@@ -33,7 +33,7 @@ public class RoomOccupancyReportQueryHandlerTests : IDisposable
         await _context.Rooms.AddAsync(room);
 
         var booking = Booking.Create(room.Id,TimeRange.Create(new DateTime(2026, 9, 1, 10, 0, 0),
-            new DateTime(2026, 9, 1, 12, 0, 0)),Enumerable.Empty<Guid>(),Money.Uah(3000));
+            new DateTime(2026, 9, 1, 12, 0, 0)), Enumerable.Empty<Service>(), Money.Uah(3000));
 
         await _context.Bookings.AddAsync(booking);
         await _context.SaveChangesAsync();

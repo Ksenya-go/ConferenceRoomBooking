@@ -50,11 +50,21 @@ public class TestDbContext : DbContext, IApplicationDbContext
                 money.Property(m => m.Currency);
             });
 
-            b.Property<List<Guid>>("_selectedServiceIds")
-                .HasConversion(
-                    ids => string.Join(',', ids),
-                    str => str == "" ? new List<Guid>() : str.Split(',', StringSplitOptions.None).
-                    Select(Guid.Parse).ToList());
+            b.Ignore(bk => bk.SelectedServiceIds);
+
+            b.Navigation(bk => bk.Services)
+                .UsePropertyAccessMode(PropertyAccessMode.Field);
+
+            b.OwnsMany(bk => bk.Services, bs =>
+            {
+                bs.WithOwner().HasForeignKey(x => x.BookingId);
+                bs.HasKey(x => new { x.BookingId, x.ServiceId });
+
+                bs.Ignore(x => x.PriceAtBooking);
+
+                bs.Property<decimal>("_priceAmount");
+                bs.Property<string>("_priceCurrency");
+            });
         });
 
         modelBuilder.Entity<RoomService>().HasKey(rs => new { rs.RoomId, rs.ServiceId });

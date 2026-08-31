@@ -14,6 +14,12 @@ public sealed class Money : IEquatable<Money>
         Currency = currency;
     }
 
+    // Відновлення Money після збереження в БД без повторної валідації
+    public static Money Restore(decimal amount, string currency)
+    {
+        return new Money(amount, currency);
+    }
+
     public static Money Uah(decimal amount)
     {
         if (amount < 0)

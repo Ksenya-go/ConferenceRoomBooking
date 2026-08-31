@@ -24,7 +24,6 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
                 .HasColumnName("EndTime")
                 .IsRequired();
 
-           
             tr.HasIndex(t => new { t.Start, t.End });
         });
 
@@ -48,18 +47,43 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
 
         builder.Property(b => b.CreatedAtUtc).IsRequired();
 
-        
-        builder.Property<List<Guid>>("_selectedServiceIds")
-            .HasColumnName("SelectedServiceIds")
-            .HasConversion(
-                ids => string.Join(',', ids),
-                str => str == "" ? new List<Guid>() : 
-                str.Split(',', StringSplitOptions.None).Select(Guid.Parse).ToList())
-            .Metadata.SetValueComparer(new Microsoft.EntityFrameworkCore.ChangeTracking.
-            ValueComparer<List<Guid>>(
-                (a, b) => a!.SequenceEqual(b!),
-                a => a.Aggregate(0, (hash, id) => HashCode.Combine(hash, id)),
-                a => a.ToList()));
+        builder.Ignore(b => b.SelectedServiceIds);
+
+        builder.Navigation(b => b.Services)
+                .UsePropertyAccessMode(PropertyAccessMode.Field);
+
+        builder.OwnsMany(b => b.Services, bs =>
+        {
+            bs.ToTable("BookingServices");
+
+            bs.WithOwner().HasForeignKey(x => x.BookingId);
+            bs.HasKey(x => new { x.BookingId, x.ServiceId });
+
+            bs.Property(x => x.ServiceName)
+                .HasColumnName("ServiceName")
+                .HasMaxLength(200)
+                .IsRequired();
+
+            bs.Ignore(x => x.PriceAtBooking);
+
+           
+            bs.Property<decimal>("_priceAmount")
+                .HasColumnName("PriceAtBooking")
+                .HasColumnType("decimal(18,2)")
+                .IsRequired();
+
+            bs.Property<string>("_priceCurrency")
+                .HasColumnName("PriceCurrency")
+                .HasMaxLength(3)
+                .IsRequired();
+
+            bs.HasOne<Service>()
+                .WithMany()
+                .HasForeignKey(x => x.ServiceId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            bs.HasIndex(x => x.ServiceId);
+        });
 
         // Захист від "загубленого оновлення" при одночасних змінах
         builder.Property<byte[]>("RowVersion")
