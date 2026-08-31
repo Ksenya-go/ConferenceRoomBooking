@@ -31,10 +31,10 @@ public class RevenueReportQueryHandlerTests : IDisposable
         await _context.Rooms.AddAsync(room);
 
         var booking1 = Booking.Create(room.Id,TimeRange.Create(new DateTime(2026, 9, 1, 10, 0, 0), 
-            new DateTime(2026, 9, 1, 12, 0, 0)),Enumerable.Empty<Guid>(),Money.Uah(3000));
+            new DateTime(2026, 9, 1, 12, 0, 0)), Enumerable.Empty<Service>(), Money.Uah(3000));
 
         var booking2 = Booking.Create(room.Id,TimeRange.Create(new DateTime(2026, 9, 2, 10, 0, 0), 
-            new DateTime(2026, 9, 2, 12, 0, 0)),Enumerable.Empty<Guid>(),Money.Uah(4000));
+            new DateTime(2026, 9, 2, 12, 0, 0)), Enumerable.Empty<Service>(), Money.Uah(4000));
 
         await _context.Bookings.AddRangeAsync(booking1, booking2);
         await _context.SaveChangesAsync();
@@ -58,7 +58,7 @@ public class RevenueReportQueryHandlerTests : IDisposable
         await _context.Rooms.AddAsync(room);
 
         var booking = Booking.Create(room.Id,TimeRange.Create(new DateTime(2026, 9, 1, 10, 0, 0), 
-            new DateTime(2026, 9, 1, 12, 0, 0)),Enumerable.Empty<Guid>(),Money.Uah(3000));
+            new DateTime(2026, 9, 1, 12, 0, 0)), Enumerable.Empty<Service>(), Money.Uah(3000));
         booking.Cancel();
 
         await _context.Bookings.AddAsync(booking);
@@ -82,7 +82,7 @@ public class RevenueReportQueryHandlerTests : IDisposable
         await _context.Rooms.AddAsync(room);
 
         var booking = Booking.Create(room.Id,TimeRange.Create(new DateTime(2026, 10, 1, 10, 0, 0), 
-            new DateTime(2026, 10, 1, 12, 0, 0)),Enumerable.Empty<Guid>(),Money.Uah(3000));
+            new DateTime(2026, 10, 1, 12, 0, 0)), Enumerable.Empty<Service>(), Money.Uah(3000));
 
         await _context.Bookings.AddAsync(booking);
         await _context.SaveChangesAsync();

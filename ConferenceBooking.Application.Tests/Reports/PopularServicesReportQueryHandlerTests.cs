@@ -36,14 +36,14 @@ public class PopularServicesReportQueryHandlerTests : IDisposable
         await _context.Services.AddAsync(wifi);
 
         var booking1 = Booking.Create(
-            room.Id,
-            TimeRange.Create(new DateTime(2026, 9, 1, 10, 0, 0),new DateTime(2026, 9, 1, 12, 0, 0)),
-            new[] { wifi.Id },Money.Uah(3300));
+             room.Id,
+             TimeRange.Create(new DateTime(2026, 9, 1, 10, 0, 0), new DateTime(2026, 9, 1, 12, 0, 0)),
+             new[] { wifi }, Money.Uah(3300));
 
         var booking2 = Booking.Create(
             room.Id,
             TimeRange.Create(new DateTime(2026, 9, 2, 10, 0, 0),new DateTime(2026, 9, 2, 12, 0, 0)),
-            new[] { wifi.Id },Money.Uah(3300));
+            new[] { wifi },Money.Uah(3300));
 
         await _context.Bookings.AddRangeAsync(booking1, booking2);
         await _context.SaveChangesAsync();

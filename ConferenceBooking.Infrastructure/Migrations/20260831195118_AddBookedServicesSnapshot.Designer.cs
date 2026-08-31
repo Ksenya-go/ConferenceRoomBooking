@@ -4,6 +4,7 @@ using ConferenceBooking.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ConferenceBooking.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260831195118_AddBookedServicesSnapshot")]
+    partial class AddBookedServicesSnapshot
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -111,6 +114,29 @@ namespace ConferenceBooking.Infrastructure.Migrations
 
             modelBuilder.Entity("ConferenceBooking.Domain.Entities.Booking", b =>
                 {
+                    b.OwnsOne("ConferenceBooking.Domain.ValueObjects.Money", "TotalPrice", b1 =>
+                        {
+                            b1.Property<Guid>("BookingId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<decimal>("Amount")
+                                .HasColumnType("decimal(18,2)")
+                                .HasColumnName("TotalPrice");
+
+                            b1.Property<string>("Currency")
+                                .IsRequired()
+                                .HasMaxLength(3)
+                                .HasColumnType("nvarchar(3)")
+                                .HasColumnName("Currency");
+
+                            b1.HasKey("BookingId");
+
+                            b1.ToTable("Bookings");
+
+                            b1.WithOwner()
+                                .HasForeignKey("BookingId");
+                        });
+
                     b.OwnsMany("ConferenceBooking.Domain.Entities.BookingService", "Services", b1 =>
                         {
                             b1.Property<Guid>("BookingId")
@@ -160,7 +186,7 @@ namespace ConferenceBooking.Infrastructure.Migrations
 
                                     b2.HasKey("BookingServiceBookingId", "BookingServiceServiceId");
 
-                                    b2.ToTable("BookingServices", (string)null);
+                                    b2.ToTable("BookingServices");
 
                                     b2.WithOwner()
                                         .HasForeignKey("BookingServiceBookingId", "BookingServiceServiceId");
@@ -187,30 +213,7 @@ namespace ConferenceBooking.Infrastructure.Migrations
 
                             b1.HasIndex("Start", "End");
 
-                            b1.ToTable("Bookings", (string)null);
-
-                            b1.WithOwner()
-                                .HasForeignKey("BookingId");
-                        });
-
-                    b.OwnsOne("ConferenceBooking.Domain.ValueObjects.Money", "TotalPrice", b1 =>
-                        {
-                            b1.Property<Guid>("BookingId")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<decimal>("Amount")
-                                .HasColumnType("decimal(18,2)")
-                                .HasColumnName("TotalPrice");
-
-                            b1.Property<string>("Currency")
-                                .IsRequired()
-                                .HasMaxLength(3)
-                                .HasColumnType("nvarchar(3)")
-                                .HasColumnName("Currency");
-
-                            b1.HasKey("BookingId");
-
-                            b1.ToTable("Bookings", (string)null);
+                            b1.ToTable("Bookings");
 
                             b1.WithOwner()
                                 .HasForeignKey("BookingId");
@@ -244,7 +247,7 @@ namespace ConferenceBooking.Infrastructure.Migrations
 
                             b1.HasKey("RoomId");
 
-                            b1.ToTable("Rooms", (string)null);
+                            b1.ToTable("Rooms");
 
                             b1.WithOwner()
                                 .HasForeignKey("RoomId");
@@ -288,7 +291,7 @@ namespace ConferenceBooking.Infrastructure.Migrations
 
                             b1.HasKey("ServiceId");
 
-                            b1.ToTable("Services", (string)null);
+                            b1.ToTable("Services");
 
                             b1.WithOwner()
                                 .HasForeignKey("ServiceId");

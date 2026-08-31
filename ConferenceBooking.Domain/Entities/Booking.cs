@@ -4,10 +4,9 @@ using ConferenceBooking.Domain.ValueObjects;
 
 namespace ConferenceBooking.Domain.Entities;
 
-
 public class Booking : AggregateRoot
 {
-    private readonly List<Guid> _selectedServiceIds = new();
+    private readonly List<BookingService> _services = new();
 
     public Guid RoomId { get; private set; }
     public TimeRange TimeRange { get; private set; } = null!;
@@ -15,14 +14,18 @@ public class Booking : AggregateRoot
     public BookingStatus Status { get; private set; }
     public DateTime CreatedAtUtc { get; private set; }
 
-    public IReadOnlyCollection<Guid> SelectedServiceIds => _selectedServiceIds.AsReadOnly();
+    // Послуги, обрані під час бронювання, зі знімком назви/ціни на той момент
+    public IReadOnlyCollection<BookingService> Services => _services.AsReadOnly();
 
-    private Booking() { } 
+    // Похідна властивість для місць, яким потрібні лише Id (наприклад, старі виклики/звіти)
+    public IReadOnlyCollection<Guid> SelectedServiceIds => _services.Select(s => s.ServiceId).ToList();
+
+    private Booking() { }
 
     public static Booking Create(
         Guid roomId,
         TimeRange timeRange,
-        IEnumerable<Guid> selectedServiceIds,
+        IEnumerable<Service> selectedServices,
         Money totalPrice)
     {
         var booking = new Booking
@@ -35,8 +38,13 @@ public class Booking : AggregateRoot
             CreatedAtUtc = DateTime.UtcNow
         };
 
-        // якщо клієнт випадково передав одну послугу двічі - Distinct
-        booking._selectedServiceIds.AddRange(selectedServiceIds.Distinct());
+        // якщо клієнт випадково передав одну послугу двічі - DistinctBy
+        foreach (var service in selectedServices.DistinctBy(s => s.Id))
+        {
+            booking._services.Add(
+                BookingService.Create(booking.Id, service.Id, service.Name, service.Price));
+        }
+
         return booking;
     }
 
@@ -46,11 +54,10 @@ public class Booking : AggregateRoot
         {
             throw new InvalidOperationException(DomainErrorMessages.BookingAlreadyCancelled);
         }
-       
+
         Status = BookingStatus.Cancelled;
     }
 
-    // Перевірка на перетин бронювання з іншим проміжком часу (чи вільний зал)
     public bool OverlapsWith(TimeRange other)
     {
         return TimeRange.Overlaps(other);

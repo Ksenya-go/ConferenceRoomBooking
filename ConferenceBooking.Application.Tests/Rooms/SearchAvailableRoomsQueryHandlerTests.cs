@@ -100,7 +100,7 @@ public class SearchAvailableRoomsQueryHandlerTests : IDisposable
         var timeRange = TimeRange.Create(new DateTime(2026, 9, 1, 10, 0, 0),
             new DateTime(2026, 9, 1, 12, 0, 0));
 
-        var booking = Booking.Create(room.Id,timeRange,Enumerable.Empty<Guid>(),Money.Uah(3000));
+        var booking = Booking.Create(room.Id,timeRange,Enumerable.Empty<Service>(),Money.Uah(3000));
 
         await _context.Bookings.AddAsync(booking);
         await _context.SaveChangesAsync();
@@ -127,7 +127,7 @@ public class SearchAvailableRoomsQueryHandlerTests : IDisposable
         var existingTimeRange = TimeRange.Create(new DateTime(2026, 9, 1, 10, 0, 0),
             new DateTime(2026, 9, 1, 12, 0, 0));
 
-        var booking = Booking.Create(room.Id,existingTimeRange,Enumerable.Empty<Guid>(),
+        var booking = Booking.Create(room.Id,existingTimeRange,Enumerable.Empty<Service>(),
             Money.Uah(3000));
 
         await _context.Bookings.AddAsync(booking);

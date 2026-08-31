@@ -66,7 +66,7 @@ public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand,
 
             var totalPrice = _pricingService.CalculateTotalPrice(room, timeRange, selectedServices);
 
-            var booking = Booking.Create(room.Id, timeRange, request.SelectedServiceIds, totalPrice);
+            var booking = Booking.Create(room.Id, timeRange, selectedServices, totalPrice); 
 
             await _context.Bookings.AddAsync(booking, ct);
             await _context.SaveChangesAsync(ct);
