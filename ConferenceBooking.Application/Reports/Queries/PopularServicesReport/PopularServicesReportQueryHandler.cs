@@ -1,8 +1,7 @@
 ﻿using ConferenceBooking.Application.Common.Interfaces;
+using ConferenceBooking.Application.Reports.Common;
 using ConferenceBooking.Application.Reports.Dtos;
-using ConferenceBooking.Domain.Enums;
 using Mediator;
-using Microsoft.EntityFrameworkCore;
 
 namespace ConferenceBooking.Application.Reports.Queries.PopularServicesReport;
 
@@ -21,30 +20,18 @@ public class PopularServicesReportQueryHandler
     {
         // Беруться тільки підтверджені бронювання за вказаний період
         // (скасовані в дохід і статистику не рахуються)
+        var bookings = await ReportQueryHelpers.GetConfirmedBookingsInPeriodAsync(
+            _context, request.PeriodStart, request.PeriodEnd, cancellationToken);
 
-        var bookings = await _context.Bookings
-            .Where(b => b.Status == BookingStatus.Confirmed)
-            .Where(b => b.TimeRange.Start >= request.PeriodStart && b.TimeRange.End <= request.PeriodEnd)
-            .ToListAsync(cancellationToken);
-
-        // Отримання Id послуг, які були вибрані в цих бронюваннях
-        var allServiceIds = bookings.SelectMany(b => b.SelectedServiceIds).Distinct().ToList();
-
-        // Завантаження послуг з бази, щоб отримати їх назви та актуальні ціни
-        var services = await _context.Services
-            .Where(s => allServiceIds.Contains(s.Id))
-            .ToDictionaryAsync(s => s.Id, cancellationToken);
-
-        // Групування послуг за Id та розрахунок,скільки разів кожна послуга була замовлена
+        // Групування за знімком послуги на момент бронювання,щоб звіт використовував фактичну ціну
         var result = bookings
-            .SelectMany(b => b.SelectedServiceIds)
-            .Where(services.ContainsKey)
-            .GroupBy(id => id)
+            .SelectMany(b => b.Services)
+            .GroupBy(bs => new { bs.ServiceId, bs.ServiceName })
             .Select(g => new PopularServicesReportDto(
-                g.Key,
-                services[g.Key].Name,
+                g.Key.ServiceId,
+                g.Key.ServiceName,
                 g.Count(),
-                g.Count() * services[g.Key].Price.Amount))
+                g.Sum(bs => bs.PriceAtBooking.Amount)))
             .OrderByDescending(s => s.TimesOrdered)
             .ToList();
 

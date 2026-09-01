@@ -1,14 +1,8 @@
 ﻿using ConferenceBooking.Application.Common.ErrorMessages;
+using ConferenceBooking.Application.Reports.Common;
 using FluentValidation;
 
 namespace ConferenceBooking.Application.Reports.Queries.PopularServicesReport;
 
-public class PopularServicesReportQueryValidator : AbstractValidator<PopularServicesReportQuery>
-{
-    public PopularServicesReportQueryValidator()
-    {
-        RuleFor(x => x.PeriodEnd)
-            .GreaterThan(x => x.PeriodStart)
-            .WithMessage(ReportErrorMessages.PeriodEndMustBeAfterStart);
-    }
-}
+public class PopularServicesReportQueryValidator : 
+    ReportPeriodQueryValidator<PopularServicesReportQuery> { }

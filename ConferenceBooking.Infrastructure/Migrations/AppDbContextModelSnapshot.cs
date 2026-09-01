@@ -44,11 +44,6 @@ namespace ConferenceBooking.Infrastructure.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
-                    b.Property<string>("_selectedServiceIds")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("SelectedServiceIds");
-
                     b.HasKey("Id");
 
                     b.HasIndex("RoomId");
@@ -116,6 +111,65 @@ namespace ConferenceBooking.Infrastructure.Migrations
 
             modelBuilder.Entity("ConferenceBooking.Domain.Entities.Booking", b =>
                 {
+                    b.OwnsMany("ConferenceBooking.Domain.Entities.BookingService", "Services", b1 =>
+                        {
+                            b1.Property<Guid>("BookingId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<Guid>("ServiceId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("ServiceName")
+                                .IsRequired()
+                                .HasMaxLength(200)
+                                .HasColumnType("nvarchar(200)")
+                                .HasColumnName("ServiceName");
+
+                            b1.HasKey("BookingId", "ServiceId");
+
+                            b1.HasIndex("ServiceId");
+
+                            b1.ToTable("BookingServices", (string)null);
+
+                            b1.WithOwner()
+                                .HasForeignKey("BookingId");
+
+                            b1.HasOne("ConferenceBooking.Domain.Entities.Service", null)
+                                .WithMany()
+                                .HasForeignKey("ServiceId")
+                                .OnDelete(DeleteBehavior.Restrict)
+                                .IsRequired();
+
+                            b1.OwnsOne("ConferenceBooking.Domain.ValueObjects.Money", "PriceAtBooking", b2 =>
+                                {
+                                    b2.Property<Guid>("BookingServiceBookingId")
+                                        .HasColumnType("uniqueidentifier");
+
+                                    b2.Property<Guid>("BookingServiceServiceId")
+                                        .HasColumnType("uniqueidentifier");
+
+                                    b2.Property<decimal>("Amount")
+                                        .HasColumnType("decimal(18,2)")
+                                        .HasColumnName("PriceAtBooking");
+
+                                    b2.Property<string>("Currency")
+                                        .IsRequired()
+                                        .HasMaxLength(3)
+                                        .HasColumnType("nvarchar(3)")
+                                        .HasColumnName("PriceCurrency");
+
+                                    b2.HasKey("BookingServiceBookingId", "BookingServiceServiceId");
+
+                                    b2.ToTable("BookingServices", (string)null);
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("BookingServiceBookingId", "BookingServiceServiceId");
+                                });
+
+                            b1.Navigation("PriceAtBooking")
+                                .IsRequired();
+                        });
+
                     b.OwnsOne("ConferenceBooking.Domain.ValueObjects.TimeRange", "TimeRange", b1 =>
                         {
                             b1.Property<Guid>("BookingId")
@@ -161,6 +215,8 @@ namespace ConferenceBooking.Infrastructure.Migrations
                             b1.WithOwner()
                                 .HasForeignKey("BookingId");
                         });
+
+                    b.Navigation("Services");
 
                     b.Navigation("TimeRange")
                         .IsRequired();

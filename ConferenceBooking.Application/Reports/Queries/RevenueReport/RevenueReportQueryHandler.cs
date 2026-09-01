@@ -1,4 +1,5 @@
 ﻿using ConferenceBooking.Application.Common.Interfaces;
+using ConferenceBooking.Application.Reports.Common;
 using ConferenceBooking.Application.Reports.Dtos;
 using ConferenceBooking.Domain.Enums;
 using Mediator;
@@ -20,10 +21,8 @@ public class RevenueReportQueryHandler : IRequestHandler<RevenueReportQuery, Rev
     {
         // Беруться тільки підтверджені бронювання за вказаний період
         // (скасовані в дохід і статистику не рахуються)
-        var bookings = await _context.Bookings
-            .Where(b => b.Status == BookingStatus.Confirmed)
-            .Where(b => b.TimeRange.Start >= request.PeriodStart && b.TimeRange.End <= request.PeriodEnd)
-            .ToListAsync(cancellationToken);
+        var bookings = await ReportQueryHelpers.GetConfirmedBookingsInPeriodAsync(
+                       _context, request.PeriodStart, request.PeriodEnd, cancellationToken);
 
         // Отримання Id залів, які використовувалися в цих бронюваннях
         var roomIds = bookings.Select(b => b.RoomId).Distinct().ToList();

@@ -1,0 +1,209 @@
+## ConferenceRoomBooking API
+REST API для управління бронюванням та орендою конференц-залів, побудований на ASP.NET Core Web API.
+
+## Зміст
+- [Опис задачі](#опис-задачі)
+- [Технології](#технології)
+- [Архітектура](#архітектура)
+- [Структура проєкту](#структура-проєкту)
+- [Початок роботи](#початок-роботи)
+- [База даних](#база-даних)
+- [API Endpoints](#api-endpoints)
+- [Розрахунок вартості](#розрахунок-вартості)
+- [Тестування](#тестування)
+- [Відомі обмеження](#відомі-обмеження)
+## Опис задачі
+Компанія надає в оренду конференц-зали для бізнесу. API дозволяє клієнтам шукати доступні зали, бронювати їх, а також розраховувати вартість оренди залежно від часу та обраних послуг.
+## Бізнес-можливості:
+- управління каталогом залів (створення, редагування, деактивація)
+- управління каталогом додаткових послуг (створення, редагування ціни/назви, деактивація)
+- пошук доступних залів за датою/часом і місткістю
+- бронювання залу з обраними додатковими послугами
+- автоматичний розрахунок вартості оренди залежно від тарифного поясу
+- аналітичні звіти для бізнесу (завантаженість, дохід, популярність послуг)
+## Технології
+| Категорія        | Технологія                                  |
+| ---------------- | ------------------------------------------- |
+| Платформа        | .NET 10 / C#                                |
+| Веб-фреймворк    | ASP.NET Core Web API                        |
+| ORM              | Entity Framework Core 10 (SQL Server)       |
+| Медіатор         | Mediator (source-generated, без reflection) |
+| Валідація        | FluentValidation                            |
+| Документація API | Swagger / OpenAPI                           |
+| Тести            | xUnit + FluentAssertions                    |
+
+## Архітектура
+```
+ConferenceBooking.Domain             — ядро, без залежностей від інших шарів
+    ↑
+ConferenceBooking.Application        — use cases (CQRS через Mediator), валідація
+    ↑
+ConferenceBooking.Infrastructure     — EF Core, репозиторії, міграції
+    ↑
+ConferenceRoomBooking                — ASP.NET Core Web API (Presentation)
+```
+
+## Патерни
+- **CQRS** — розділення команд і запитів через Mediator, кожен use case в окремому файлі (Command/Query + Validator + Handler)
+- **Repository** — абстракція доступу до даних (IRoomRepository, IBookingRepository, IServiceRepository)
+- **Pipeline Behaviors** — валідація, логування через IPipelineBehavior
+- **Value Objects** — `Money` та `TimeRange` відповідають за коректність грошових значень і часових інтервалів
+- **Aggregate Root** — окремі агрегати, щоб перевірка перетинів бронювань і конкурентного доступу не блокувала весь зал
+- **Soft delete** — зали та послуги не видаляються фізично для запобігання порушенню історії вже здійснених бронювань
+- **Price snapshot** — бронювання зберігає ціну послуги на момент замовлення, тому зміна ціни послуги заднім числом не спотворює фінансові звіти за минулі періоди
+
+## Доменна модель
+```
+Room (Зал)
+  ├── RoomService (зв'язок з послугами)
+  └── Booking (бронювання, окремий агрегат)
+  └── BookingService (знімок послуги: назва + ціна на момент бронювання)
+Service (послуга)
+```
+## Структура проєкту
+```
+ConferenceRoomBooking.sln
+├── ConferenceBooking.Domain/          # Доменний шар
+│   ├── Common/                        # AggregateRoot, DomainErrorMessages
+│   ├── Entities/                      # Room, Service, Booking, RoomService, BookingService
+│   ├── Enums/                         # BookingStatus, RateBand
+│   ├── Exceptions/                    # DomainException
+│   ├── Services/                      # PricingService  
+│   └── ValueObjects/                  # Money, TimeRange
+│
+├── ConferenceBooking.Application/     # Application шар (CQRS, валідація)
+│   ├── Rooms/                         # Commands: Create/Update/Delete/AddService, Queries: Search/GetById
+│   ├── Services/                      # Commands: Create/Update/Delete, Queries: GetById/GetAll    
+│   ├── Bookings/                      # Commands: Create
+│   ├── Reports/                       # Queries: Occupancy/Revenue/PopularServices
+│   └── Common/                        # Behaviors, ErrorMessages,Extensions, Exceptions,Interfaces
+│
+├── ConferenceBooking.Infrastructure/  # EF Core, міграції
+│   └── Persistence/                   # AppDbContext, Configurations, Seed
+│
+├── ConferenceRoomBooking/             # ASP.NET Core Web API
+│   ├── Controllers/                   # RoomsController, BookingsController, ReportsController,ServicesController
+│   ├── Middleware/                    # ExceptionHandlingMiddleware
+│   └── Program.cs
+│
+└── tests/
+    ├── ConferenceBooking.Domain.Tests/        # Юніт-тести доменної логіки
+    └── ConferenceBooking.Application.Tests/   # Юніт-тести хендлерів (in-memory EF Core)
+```
+**Вимоги**
+- .NET 10 SDK
+- SQL Server (LocalDB підходить для розробки)
+- EF Core CLI
+
+## Початок роботи
+```
+# 1. Клонування
+git clone <repo-url>
+cd ConferenceRoomBooking
+
+# 2. Відновлення залежностей
+dotnet restore
+
+# 3. Збірка
+dotnet build
+
+# 4. Запуск тестів
+dotnet test
+```
+## База даних
+EF Core з Code First міграціями
+```
+# Застосування міграцій
+dotnet ef database update --project ConferenceBooking.Infrastructure --startup-project ConferenceRoomBooking
+
+# Створення нової міграції
+dotnet ef migrations add <Name> --project ConferenceBooking.Infrastructure --startup-project ConferenceRoomBooking
+
+# Відкат
+dotnet ef database update <PreviousMigration> --project ConferenceBooking.Infrastructure --startup-project ConferenceRoomBooking
+```
+Рядок підключення налаштовується в ConferenceRoomBooking/appsettings.json (ConnectionStrings:DefaultConnection).
+
+**Запуск застосунку**
+```
+dotnet run --project ConferenceRoomBooking
+```
+Swagger UI доступний за адресою https://localhost:{port}/swagger. При першому запуску в Development-режимі база автоматично заповнюється початковими даними.
+
+## Початкові дані (seed)
+| Зал   | Місткість | Базова ставка |
+| ----- | --------: | ------------: |
+| Зал А |   50 осіб |  2000 грн/год |
+| Зал B |  100 осіб |  3500 грн/год |
+| Зал C |   30 осіб |  1500 грн/год |
+
+Послуги: Проєктор (500 грн), Wi-Fi (300 грн), Звук (700 грн)
+## API Endpoints
+**Rooms**
+| Метод   | Маршрут                              | Опис                    |
+| -------- | -------------------------------------- | ------------------------------ |
+| `POST`   | `/api/rooms`                           | Створити зал                   |
+| `GET`    | `/api/rooms/{id}`                      | Отримати зал за ID             |
+| `PUT`    | `/api/rooms/{id}`                      | Оновити зал                    |
+| `POST`   | `/api/rooms/{id}/services/{serviceId}` | Додати послугу до залу         |
+| `DELETE` | `/api/rooms/{id}`                      | Деактивувати зал               |
+| `GET`    | `/api/rooms/available`                 | Пошук доступних залів          |
+
+**Bookings**
+| Метод | Маршрут       | Опис     |
+| ------ | --------------- | --------------- |
+| `POST` | `/api/bookings` | Забронювати зал |
+
+**Reports**
+| Метод | Маршрут                        | Опис                         |
+| ------ | ------------------------------- | ------------------------------------ |
+| `GET`  | `/api/reports/occupancy`        | Завантаженість залів за період       |
+| `GET`  | `/api/reports/revenue`          | Дохід за період (загалом і по залах) |
+| `GET`  | `/api/reports/popular-services` | Популярність додаткових послуг       |
+
+**Services**
+| Метод | Маршрут | Опис |
+|---|---|---|
+| `POST` | `/api/services` | Створити послугу |
+| `GET` | `/api/services/{id}` | Отримати послугу за ID |
+| `GET` | `/api/services` | Отримати список послуг (`activeOnly` за замовчуванням) |
+| `PUT` | `/api/services/{id}` | Оновити назву або ціну послуги |
+| `DELETE` | `/api/services/{id}` | Деактивувати послугу |
+
+## Розрахунок вартості
+Доба поділена на 5 тарифних поясів:
+| Час                    | Модифікатор |
+| ---------------------- | ----------: |
+| 06:00–09:00 (ранок)    |        −10% |
+| 09:00–12:00 (стандарт) | Базова ціна |
+| 12:00–14:00 (пік)      |        +15% |
+| 14:00–18:00 (стандарт) | Базова ціна |
+| 18:00–23:00 (вечір)    |        −20% |
+
+Якщо бронювання перетинає кілька поясів одразу, кожен сегмент рахується окремо пропорційно тривалості, а результати сумуються.
+
+**Безпека та відмовостійкість**
+- централізована обробка помилок (ExceptionHandlingMiddleware), яка не розкриває клієнту внутрішні деталі 500-помилок
+- обмеження частоти запитів у 100 запитів/хв
+- валідація вхідних даних через FluentValidation для кожної команди/запиту
+- захист від конкурентного бронювання через транзакцію з рівнем ізоляції Serializable (IBookingTransactionGuard)
+- автоматичне повторення операції при тимчасових помилках БД
+
+## Тестування
+**Запуск усіх тестів:**
+```
+dotnet test
+```
+| Компонент                    | Тип тестів                                        |
+| ---------------------------- | ------------------------------------------------- |
+| `Room`, `Booking`, `Service` | Юніт-тести доменних інваріантів                   |
+| `Money`, `TimeRange`         | Юніт-тести Value Objects                          |
+| `AggregateRoot`              | Юніт-тести рівності за ідентичністю               |
+| `PricingService`             | Юніт-тести, включно з граничними сценаріями       |
+| Rooms /Services / Bookings / Reports   | Тести валідаторів і хендлерів з in-memory EF Core |
+
+## Відомі обмеження
+- для продакшн потрібно додати JWT та ролі `Admin` / `Client` для захисту ендпоінтів
+- необхідно зробити обмеження частоти запитів для конкретного клієнта
+- потрібно додати дані клієнта до бронювання для відстеження його бронювань та скасувань
+- варто додати пагінацію для списків і звітів

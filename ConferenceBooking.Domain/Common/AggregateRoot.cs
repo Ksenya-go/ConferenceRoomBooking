@@ -34,6 +34,17 @@ public abstract class AggregateRoot
         return Id == other.Id;
     }
 
+    public static bool operator ==(AggregateRoot? left, AggregateRoot? right)
+    {
+        return left is null ? right is null : left.Equals(right);
+    } 
+        
+
+    public static bool operator !=(AggregateRoot? left, AggregateRoot? right)
+    {
+        return !(left == right);
+    }
+
     public override int GetHashCode() 
         {
             return HashCode.Combine(GetType(), Id);
