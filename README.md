@@ -11,11 +11,12 @@ REST API для управління бронюванням та орендою 
 - [API Endpoints](#api-endpoints)
 - [Розрахунок вартості](#розрахунок-вартості)
 - [Тестування](#тестування)
-
+- [Відомі обмеження](#відомі-обмеження)
 ## Опис задачі
 Компанія надає в оренду конференц-зали для бізнесу. API дозволяє клієнтам шукати доступні зали, бронювати їх, а також розраховувати вартість оренди залежно від часу та обраних послуг.
 ## Бізнес-можливості:
 - управління каталогом залів (створення, редагування, деактивація)
+- управління каталогом додаткових послуг (створення, редагування ціни/назви, деактивація)
 - пошук доступних залів за датою/часом і місткістю
 - бронювання залу з обраними додатковими послугами
 - автоматичний розрахунок вартості оренди залежно від тарифного поясу
@@ -49,12 +50,14 @@ ConferenceRoomBooking                — ASP.NET Core Web API (Presentation)
 - **Value Objects** — Money, TimeRange інкапсулюють власні інваріанти
 - **Aggregate Root** — окремі агрегати, щоб перевірка перетинів бронювань і конкурентного доступу не блокувала весь зал
 - **Soft delete** — зали та послуги не видаляються фізично, щоб не зламати історію вже здійснених бронювань
+- **Price snapshot** — бронювання зберігає ціну послуги на момент замовлення, тому зміна ціни послуги заднім числом не спотворює фінансові звіти за минулі періоди
 
 ## Доменна модель
 ```
 Room (Зал)
   ├── RoomService (зв'язок з послугами)
   └── Booking (бронювання, окремий агрегат)
+  └── BookingService (знімок послуги: назва + ціна на момент бронювання)
 Service (послуга)
 ```
 ## Структура проєкту
@@ -62,24 +65,24 @@ Service (послуга)
 ConferenceRoomBooking.sln
 ├── ConferenceBooking.Domain/          # Доменний шар
 │   ├── Common/                        # AggregateRoot, DomainErrorMessages
-│   ├── Entities/                      # Room, Service, Booking, RoomService
+│   ├── Entities/                      # Room, Service, Booking, RoomService, BookingService
 │   ├── Enums/                         # BookingStatus, RateBand
 │   ├── Exceptions/                    # DomainException
-│   ├── Interfaces/                    # IRoomRepository, IBookingRepository, IServiceRepository
 │   ├── Services/                      # PricingService  
 │   └── ValueObjects/                  # Money, TimeRange
 │
 ├── ConferenceBooking.Application/     # Application шар (CQRS, валідація)
 │   ├── Rooms/                         # Commands: Create/Update/Delete/AddService, Queries: Search/GetById
+│   ├── Services/                      # Commands: Create/Update/Delete, Queries: GetById/GetAll    
 │   ├── Bookings/                      # Commands: Create
 │   ├── Reports/                       # Queries: Occupancy/Revenue/PopularServices
-│   └── Common/                        # Behaviors, ErrorMessages, Exceptions
+│   └── Common/                        # Behaviors, ErrorMessages,Extensions, Exceptions,Interfaces
 │
 ├── ConferenceBooking.Infrastructure/  # EF Core, репозиторії, міграції
-│   └── Persistence/                   # AppDbContext, Configurations, Repositories, Seed
+│   └── Persistence/                   # AppDbContext, Configurations, Seed
 │
 ├── ConferenceRoomBooking/             # ASP.NET Core Web API
-│   ├── Controllers/                   # RoomsController, BookingsController, ReportsController
+│   ├── Controllers/                   # RoomsController, BookingsController, ReportsController,ServicesController
 │   ├── Middleware/                    # ExceptionHandlingMiddleware
 │   └── Program.cs
 │
@@ -158,6 +161,15 @@ Swagger UI доступний за адресою https://localhost:{port}/swagg
 | `GET`  | `/api/reports/revenue`          | Дохід за період (загалом і по залах) |
 | `GET`  | `/api/reports/popular-services` | Популярність додаткових послуг       |
 
+**Services**
+| Метод | Маршрут | Опис |
+|---|---|---|
+| `POST` | `/api/services` | Створити послугу |
+| `GET` | `/api/services/{id}` | Отримати послугу за ID |
+| `GET` | `/api/services` | Отримати список послуг (`activeOnly` за замовчуванням) |
+| `PUT` | `/api/services/{id}` | Оновити назву або ціну послуги |
+| `DELETE` | `/api/services/{id}` | Деактивувати послугу |
+
 ## Розрахунок вартості
 Доба поділена на 5 тарифних поясів:
 | Час                    | Модифікатор |
@@ -188,5 +200,10 @@ dotnet test
 | `Money`, `TimeRange`         | Юніт-тести Value Objects                          |
 | `AggregateRoot`              | Юніт-тести рівності за ідентичністю               |
 | `PricingService`             | Юніт-тести, включно з граничними сценаріями       |
-| Rooms / Bookings / Reports   | Тести валідаторів і хендлерів з in-memory EF Core |
+| Rooms /Services / Bookings / Reports   | Тести валідаторів і хендлерів з in-memory EF Core |
 
+## Відомі обмеження
+- для production потрібно додати JWT та ролі `Admin` / `Client` для захисту ендпоінтів
+- необхідно зробити обмеження частоти запитів для конкретного клієнта
+- потрібно додати дані клієнта до бронювання для відстеження його бронювань та скасувань
+- варто додати пагінацію для списків і звітів
