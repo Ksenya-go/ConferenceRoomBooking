@@ -1,4 +1,5 @@
 ﻿using ConferenceBooking.Domain.Entities;
+using ConferenceBooking.Application.Services.Dtos;
 
 namespace ConferenceBooking.Application.Rooms.Dtos;
 
@@ -17,7 +18,5 @@ public record RoomDto(
             room.Capacity,
             room.BaseHourlyRate.Amount,
             room.IsActive,
-            services.Select(s => new ServiceDto(s.Id, s.Name, s.Price.Amount)).ToList());
+            services.Select(ServiceDto.FromEntity).ToList());
 }
-
-public record ServiceDto(Guid Id, string Name, decimal Price);
