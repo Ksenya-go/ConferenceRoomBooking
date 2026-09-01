@@ -47,9 +47,9 @@ ConferenceRoomBooking                — ASP.NET Core Web API (Presentation)
 - **CQRS** — розділення команд і запитів через Mediator, кожен use case в окремому файлі (Command/Query + Validator + Handler)
 - **Repository** — абстракція доступу до даних (IRoomRepository, IBookingRepository, IServiceRepository)
 - **Pipeline Behaviors** — валідація, логування через IPipelineBehavior
-- **Value Objects** — Money, TimeRange інкапсулюють власні інваріанти
+- **Value Objects** — `Money` та `TimeRange` відповідають за коректність грошових значень і часових інтервалів
 - **Aggregate Root** — окремі агрегати, щоб перевірка перетинів бронювань і конкурентного доступу не блокувала весь зал
-- **Soft delete** — зали та послуги не видаляються фізично, щоб не зламати історію вже здійснених бронювань
+- **Soft delete** — зали та послуги не видаляються фізично для запобігання порушенню історії вже здійснених бронювань
 - **Price snapshot** — бронювання зберігає ціну послуги на момент замовлення, тому зміна ціни послуги заднім числом не спотворює фінансові звіти за минулі періоди
 
 ## Доменна модель
@@ -78,7 +78,7 @@ ConferenceRoomBooking.sln
 │   ├── Reports/                       # Queries: Occupancy/Revenue/PopularServices
 │   └── Common/                        # Behaviors, ErrorMessages,Extensions, Exceptions,Interfaces
 │
-├── ConferenceBooking.Infrastructure/  # EF Core, репозиторії, міграції
+├── ConferenceBooking.Infrastructure/  # EF Core, міграції
 │   └── Persistence/                   # AppDbContext, Configurations, Seed
 │
 ├── ConferenceRoomBooking/             # ASP.NET Core Web API
@@ -187,7 +187,7 @@ Swagger UI доступний за адресою https://localhost:{port}/swagg
 - обмеження частоти запитів у 100 запитів/хв
 - валідація вхідних даних через FluentValidation для кожної команди/запиту
 - захист від конкурентного бронювання через транзакцію з рівнем ізоляції Serializable (IBookingTransactionGuard)
-- логіка повторних спроб на транзієнтні помилки БД
+- автоматичне повторення операції при тимчасових помилках БД
 
 ## Тестування
 **Запуск усіх тестів:**
@@ -203,7 +203,7 @@ dotnet test
 | Rooms /Services / Bookings / Reports   | Тести валідаторів і хендлерів з in-memory EF Core |
 
 ## Відомі обмеження
-- для production потрібно додати JWT та ролі `Admin` / `Client` для захисту ендпоінтів
+- для продакшн потрібно додати JWT та ролі `Admin` / `Client` для захисту ендпоінтів
 - необхідно зробити обмеження частоти запитів для конкретного клієнта
 - потрібно додати дані клієнта до бронювання для відстеження його бронювань та скасувань
 - варто додати пагінацію для списків і звітів
